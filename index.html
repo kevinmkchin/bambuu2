@@ -219,6 +219,9 @@
 
           let roomnameBox = document.getElementById("roomname");
           roomnameBox.value = rooms[currentlySelectedRoomIndex].name;
+
+          select = document.getElementById("roomTypeSelection");
+          select.value = rooms[currentlySelectedRoomIndex].type;
         }
 
         function roomNameChanged()
@@ -239,6 +242,7 @@
           loadRoomData(rooms[newlySelectedRoomIndex]);
           currentlySelectedRoomIndex = newlySelectedRoomIndex;
           document.getElementById("roomname").value = rooms[newlySelectedRoomIndex].name;
+          refreshSelects();
         }
         
         let bMouseDown = false;

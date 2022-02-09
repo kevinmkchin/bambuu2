@@ -153,6 +153,14 @@
           rooms[currentlySelectedRoomIndex].width = w;
           rooms[currentlySelectedRoomIndex].height = h;
 
+          let _rw = document.getElementById("rwidth");
+          let _rh = document.getElementById("rheight");
+          if(_rw != null)
+          {
+            _rw.value = w;
+            _rh.value = h;
+          }
+
           let oldH = spriteArray.length;
           let oldW = spriteArray[0].length;
 

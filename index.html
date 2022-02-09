@@ -318,7 +318,7 @@
               let sprite = spriteArray[i][j];
               roomTileData += sprite.texture.glyph;
             }
-            roomTileData += '*';
+            //roomTileData += '*';
           }
 
           let roomData = {
@@ -351,7 +351,7 @@
             {
               for(let j = 0; j < roomDataObj.width; ++j)
               {
-                let glyph = roomDataObj.data.charAt(i * roomDataObj.width + j + i/*for delimiter*/);
+                let glyph = roomDataObj.data.charAt(i * roomDataObj.width + j); // + i/*for delimiter*/
                 if(textures[glyph.toLowerCase()] == undefined)
                 {
                   let _num = "zero one two three four five six seven eight nine".split(" ");

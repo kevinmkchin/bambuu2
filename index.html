@@ -382,6 +382,7 @@
                 _rs.value = 0;
                 refreshSelects();
                 loadRoomData(rooms[0]);
+                document.getElementById("filename").value = files[0].name.replace(/\.[^/.]+$/, "");
               }
             };
             reader.readAsText(files[0]);

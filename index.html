@@ -66,7 +66,6 @@
       <div id="GlyphSelect">
         <label>Glyph</label>
         <select name="glyphs" id="glyphSelection" onchange="glyphSelectionChanged()">
-          <option value="0">0 - empty</option>
         </select>
         <label>Note</label>
         <input type="text" id="glyphnote" onchange="glyphNoteChanged()" value="" size=20>
@@ -121,6 +120,29 @@
             textures[fuck[f].toLowerCase()].glyph = fuck[f];
           }
 
+          fuck = ['0','1','2','3','4','5','6','7','8','9',
+          'A','B','C','D','E','F','G','H','I','J','K','L','M','N',
+          'O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+          for (let f = 0; f < fuck.length; ++f)
+          {
+            const keyObject = keyboard(fuck[f].toLowerCase());
+
+            keyObject.press = () => {
+              //key object pressed
+              let rn = document.getElementById("roomname");
+              let gh = document.getElementById("glyphnote");
+              let rw = document.getElementById("rwidth");
+              let rh = document.getElementById("rheight");
+              const active = document.activeElement;
+              if(rn != active && gh != active && rw != active && rh != active)
+              {
+                let e = document.getElementById("glyphSelection");
+                e.value = fuck[f].toLowerCase();
+                glyphSelectionChanged();
+              }
+            };
+          }
+
           // TODO ADD CUSTOM SPRITES FOR GLYPHS HERE
           // textures.one = PIXI.Texture.from('res/1.png');
           // textures.one.glyph = "1";
@@ -166,6 +188,8 @@
 
           refreshSelects();
           
+          document.getElementById("glyphSelection").value = "0";
+          glyphSelectionChanged();
         }
 
           function newZeroSpriteAt(i, j)
@@ -471,7 +495,7 @@
               rooms: rooms
             };
             let e = document.getElementById("filename");
-            download(JSON.stringify(saveData), e.value+'.json', 'text/plain');
+            download(JSON.stringify(saveData, null, 2), e.value+'.json', 'text/plain');
           }
 
           function download(content, fileName, contentType) {
@@ -487,6 +511,51 @@
             let w = Math.min(Math.max(document.getElementById("rwidth").value, 1), 50);
             let h = Math.min(Math.max(document.getElementById("rheight").value, 1), 50);
             resizeRoom(w,h);
+          }
+
+          function keyboard(value) {
+            const key = {};
+            key.value = value;
+            key.isDown = false;
+            key.isUp = true;
+            key.press = undefined;
+            key.release = undefined;
+            //The `downHandler`
+            key.downHandler = (event) => {
+              if (event.key === key.value) {
+                if (key.isUp && key.press) {
+                  key.press();
+                }
+                key.isDown = true;
+                key.isUp = false;
+              }
+            };
+
+            //The `upHandler`
+            key.upHandler = (event) => {
+              if (event.key === key.value) {
+                if (key.isDown && key.release) {
+                  key.release();
+                }
+                key.isDown = false;
+                key.isUp = true;
+              }
+            };
+
+            //Attach event listeners
+            const downListener = key.downHandler.bind(key);
+            const upListener = key.upHandler.bind(key);
+            
+            window.addEventListener("keydown", downListener, false);
+            window.addEventListener("keyup", upListener, false);
+            
+            // Detach event listeners
+            key.unsubscribe = () => {
+              window.removeEventListener("keydown", downListener);
+              window.removeEventListener("keyup", upListener);
+            };
+            
+            return key;
           }
       </script>
     </div>

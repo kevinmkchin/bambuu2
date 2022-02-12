@@ -3,6 +3,8 @@
   <title>cpsc427 roguelike room editor</title>
   <head>
     <script src="pixi.min.js"></script>
+    <script src="https://pixijs.download/release/pixi.min.js"></script>
+    <script src="node_modules/pixi-filters/dist/pixi-filters.js"></script>
     <style>
       @font-face {
         font-family: "VGA437";
@@ -63,19 +65,16 @@
 
       <div id="GlyphSelect">
         <label>Glyph</label>
-        <select name="glyphs" id="glyphSelection">
-          <option value="zero">0 - empty</option>
-          <option value="one">1</option>
+        <select name="glyphs" id="glyphSelection" onchange="glyphSelectionChanged()">
+          <option value="0">0 - empty</option>
         </select>
+        <label>Note</label>
+        <input type="text" id="glyphnote" onchange="glyphNoteChanged()" value="" size=20>
       </div>
 
     </div>
     <div>
       <script>
-        /** TODO
-            - undo, redo
-            - show grid
-        */
         let rooms = [ 
           {
             name: "room-1",
@@ -90,331 +89,405 @@
         let app = new PIXI.Application({ width: 640, height: 640}); //, transparent: true
         document.body.appendChild(app.view);
 
-        PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
-
         let textures = {};
-        textures.zero = PIXI.Texture.from('res/0.png');
-        textures.zero.glyph = "0";
-        textures.zero.note = " - empty"
-        textures.one = PIXI.Texture.from('res/1.png');
-        textures.one.glyph = "1";
-        textures.a = PIXI.Texture.from('res/A.png');
-        textures.a.glyph = "A";
-        textures.a.note = " - wall"
-        textures.b = PIXI.Texture.from('res/B.png');
-        textures.b.glyph = "B";
-        textures.c = PIXI.Texture.from('res/C.png');
-        textures.c.glyph = "C";
-        textures.d = PIXI.Texture.from('res/D.png');
-        textures.d.glyph = "D";
-        textures.e = PIXI.Texture.from('res/E.png');
-        textures.e.glyph = "E";
-        textures.f = PIXI.Texture.from('res/F.png');
-        textures.f.glyph = "F";
-        textures.g = PIXI.Texture.from('res/G.png');
-        textures.g.glyph = "G";
-        textures.h = PIXI.Texture.from('res/H.png');
-        textures.h.glyph = "H";
-        textures.i = PIXI.Texture.from('res/I.png');
-        textures.i.glyph = "I";
 
         let spriteArray = new Array(1); // row major
-        for (var i = 0; i < spriteArray.length; i++) {
-          spriteArray[i] = new Array(1);
-        }
-        for(let i = 0; i < 1; ++i)
+
+        window.onload = function ()
         {
-          for(let j = 0; j < 1; ++j)
+
+          /** TODO
+              - undo, redo
+              - show grid
+          */
+
+          PIXI.settings.SCALE_MODE = PIXI.SCALE_MODES.NEAREST;
+
+          textures['0'] = PIXI.Texture.from('res/0.png');
+          textures['0'].glyph = "0";
+          textures['0'].note = "empty"
+
+          let fuck = ['1','2','3','4','5','6','7','8','9',
+          'A','B','C','D','E','F','G','H','I','J','K','L','M','N',
+          'O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+          for (let f = 0; f < fuck.length; ++f)
           {
-            newZeroSpriteAt(i, j);
-          }
-        }
+            let t = new PIXI.Text( fuck[f] , {fontFamily : "VGA437", fontSize: 24, fill : 0xff1010, align : 'center'});
+            t.updateText();
+            t.visible = false;
+            app.stage.addChild(t); // Code below doesn't work without this.
 
-        resizeRoom(12, 12);
-
-        function newZeroSpriteAt(i, j)
-        {
-          let sprite = new PIXI.Sprite(textures.zero);
-          app.stage.addChild(sprite);
-          sprite.x = j * 48;
-          sprite.y = i * 48;
-          sprite.height = 48;
-          sprite.width = 48;
-          sprite.interactive = true;
-          sprite.buttonMode = true;
-          sprite.on('mousedown', onClick);
-          sprite.on('mouseover', move);
-          spriteArray[i][j] = sprite;
-        }
-
-        function resizeRoom(w, h)
-        {
-          app.renderer.resize(w * 48, h * 48);
-          rooms[currentlySelectedRoomIndex].width = w;
-          rooms[currentlySelectedRoomIndex].height = h;
-
-          let _rw = document.getElementById("rwidth");
-          let _rh = document.getElementById("rheight");
-          if(_rw != null)
-          {
-            _rw.value = w;
-            _rh.value = h;
+            textures[fuck[f].toLowerCase()] = t.texture;
+            textures[fuck[f].toLowerCase()].glyph = fuck[f];
           }
 
-          let oldH = spriteArray.length;
-          let oldW = spriteArray[0].length;
+          // TODO ADD CUSTOM SPRITES FOR GLYPHS HERE
+          // textures.one = PIXI.Texture.from('res/1.png');
+          // textures.one.glyph = "1";
+          // textures.a = PIXI.Texture.from('res/A.png');
+          // textures.a.glyph = "A";
+          // textures.a.note = " - wall"
+          // textures.b = PIXI.Texture.from('res/B.png');
+          // textures.b.glyph = "B";
+          // textures.c = PIXI.Texture.from('res/C.png');
+          // textures.c.glyph = "C";
+          // textures.d = PIXI.Texture.from('res/D.png');
+          // textures.d.glyph = "D";
+          // textures.e = PIXI.Texture.from('res/E.png');
+          // textures.e.glyph = "E";
+          // textures.f = PIXI.Texture.from('res/F.png');
+          // textures.f.glyph = "F";
+          // textures.g = PIXI.Texture.from('res/G.png');
+          // textures.g.glyph = "G";
+          // textures.h = PIXI.Texture.from('res/H.png');
+          // textures.h.glyph = "H";
+          // textures.i = PIXI.Texture.from('res/I.png');
+          // textures.i.glyph = "I";
 
-          for(let i = 0; i < spriteArray.length; ++i)
-          {
-            for(let j = 0; j < spriteArray[i].length; ++j)
-            {
-              if(i >= h || j >= w)
-              {
-                spriteArray[i][j].texture = PIXI.Texture.EMPTY;
-                spriteArray[i][j].interactive = false;
-              }
-            }
-          }
-
-          spriteArray.length = h;
-          for (let i = oldH; i < h; ++i)
-          {
-            spriteArray[i] = new Array(w);
-          }
           for (var i = 0; i < spriteArray.length; i++) {
-            spriteArray[i].length = w;
+            spriteArray[i] = new Array(1);
+          }
+          for(let i = 0; i < 1; ++i)
+          {
+            for(let j = 0; j < 1; ++j)
+            {
+              newZeroSpriteAt(i, j);
+            }
           }
 
-          for(let i = 0; i < spriteArray.length; ++i)
+          resizeRoom(12, 12);
+
+          let elapsed = 0.0;
+          app.ticker.add((delta) => {
+            elapsed += delta;
+
+          });
+
+
+          refreshSelects();
+          
+        }
+
+          function newZeroSpriteAt(i, j)
           {
-            for(let j = 0; j < spriteArray[i].length; ++j)
+            let sprite = new PIXI.Sprite(textures['0']);
+            app.stage.addChild(sprite);
+            sprite.x = j * 48;
+            sprite.y = i * 48;
+            sprite.height = 48;
+            sprite.width = 48;
+            sprite.interactive = true;
+            sprite.buttonMode = true;
+            sprite.on('mousedown', onClick);
+            sprite.on('mouseover', move);
+            spriteArray[i][j] = sprite;
+          }
+
+          function resizeRoom(w, h)
+          {
+            app.renderer.resize(w * 48, h * 48);
+            rooms[currentlySelectedRoomIndex].width = w;
+            rooms[currentlySelectedRoomIndex].height = h;
+
+            let _rw = document.getElementById("rwidth");
+            let _rh = document.getElementById("rheight");
+            if(_rw != null)
             {
-              if(i >= oldH || j >= oldW)
+              _rw.value = w;
+              _rh.value = h;
+            }
+
+            let oldH = spriteArray.length;
+            let oldW = spriteArray[0].length;
+
+            for(let i = 0; i < spriteArray.length; ++i)
+            {
+              for(let j = 0; j < spriteArray[i].length; ++j)
               {
-                newZeroSpriteAt(i, j);
+                if(i >= h || j >= w)
+                {
+                  spriteArray[i][j].texture = PIXI.Texture.EMPTY;
+                  spriteArray[i][j].interactive = false;
+                }
+              }
+            }
+
+            spriteArray.length = h;
+            for (let i = oldH; i < h; ++i)
+            {
+              spriteArray[i] = new Array(w);
+            }
+            for (var i = 0; i < spriteArray.length; i++) {
+              spriteArray[i].length = w;
+            }
+
+            for(let i = 0; i < spriteArray.length; ++i)
+            {
+              for(let j = 0; j < spriteArray[i].length; ++j)
+              {
+                if(i >= oldH || j >= oldW)
+                {
+                  newZeroSpriteAt(i, j);
+                }
               }
             }
           }
-        }
 
-        let elapsed = 0.0;
-        app.ticker.add((delta) => {
-          elapsed += delta;
 
-        });
-
-        refreshSelects();
-        let _rs = document.getElementById("roomSelection");
-        _rs.value = 0;
-        function refreshSelects()
-        {
-          let select = document.getElementById("roomSelection");
-          let selectedVal = select.value;
-          select.options.length = 0;
-          for(index in rooms) {
-            select.options[select.options.length] = new Option(rooms[index].name, index);
-          }
-          select.value = selectedVal;
-
-          select = document.getElementById("glyphSelection");
-          selectedVal = select.value;
-          select.options.length = 0;
-          for(index in textures) {
-            let text = textures[index].glyph + ((textures[index].note == undefined) ? "" : textures[index].note);
-            select.options[select.options.length] = new Option(text, index);
-          }
-          select.value = selectedVal;
-
-          let roomnameBox = document.getElementById("roomname");
-          roomnameBox.value = rooms[currentlySelectedRoomIndex].name;
-
-          select = document.getElementById("roomTypeSelection");
-          select.value = rooms[currentlySelectedRoomIndex].type;
-        }
-
-        function roomNameChanged()
-        {
-          let roomnameBox = document.getElementById("roomname");
-          rooms[currentlySelectedRoomIndex].name = roomnameBox.value;
           refreshSelects();
-        }
-
-        function roomSelectionChanged()
-        {
-          let select = document.getElementById("roomSelection");
-          let newlySelectedRoomIndex = select.value;
-          if(currentlySelectedRoomIndex != newlySelectedRoomIndex)
+          let _rs = document.getElementById("roomSelection");
+          _rs.value = 0;
+          function refreshSelects()
           {
-            rooms[currentlySelectedRoomIndex] = saveRoomData();
-          }
-          loadRoomData(rooms[newlySelectedRoomIndex]);
-          currentlySelectedRoomIndex = newlySelectedRoomIndex;
-          document.getElementById("roomname").value = rooms[newlySelectedRoomIndex].name;
-          refreshSelects();
-        }
-        
-        let bMouseDown = false;
-
-        document.body.onmousedown = function() {
-          bMouseDown = true;
-        }
-        document.body.onmouseup = function() {
-          bMouseDown = false;
-        }
-
-        function move() {
-          if(bMouseDown)
-          {
-            changeSprite(this);
-          }
-        }
-
-        function onClick() {
-          changeSprite(this);
-        }
-
-        function changeSprite(obj) {
-          let i = Math.floor(obj.y/48);
-          let j = Math.floor(obj.x/48);
-          let e = document.getElementById("glyphSelection");
-          let glyph = e.value;
-          obj.texture = textures[glyph];
-        }
-
-        function addRoom()
-        {
-          rooms.push({
-            name: "new-room",
-            type: "corridor",
-            width: Math.min(Math.max(document.getElementById("rwidth").value, 1), 50),
-            height: Math.min(Math.max(document.getElementById("rheight").value, 1), 50),
-            data: ""
-          });
-          refreshSelects();
-        }
-
-        function removeRoom()
-        {
-          if(rooms.length > 1)
-          {
-            rooms.splice(currentlySelectedRoomIndex, 1);
-            if(currentlySelectedRoomIndex > 0) {
-              currentlySelectedRoomIndex--;
-            }
             let select = document.getElementById("roomSelection");
-            select.value = currentlySelectedRoomIndex;
-            roomSelectionChanged();
+            let selectedVal = select.value;
+            select.options.length = 0;
+            for(index in rooms) {
+              select.options[select.options.length] = new Option(rooms[index].name, index);
+            }
+            select.value = selectedVal;
+
+            select = document.getElementById("glyphSelection");
+            selectedVal = select.value;
+            select.options.length = 0;
+            for(index in textures) {
+              let text = textures[index].glyph + ((textures[index].note == undefined) ? "" : " - " + textures[index].note);
+              select.options[select.options.length] = new Option(text, index);
+            }
+            select.value = selectedVal;
+
+            let roomnameBox = document.getElementById("roomname");
+            roomnameBox.value = rooms[currentlySelectedRoomIndex].name;
+
+            select = document.getElementById("roomTypeSelection");
+            select.value = rooms[currentlySelectedRoomIndex].type;
+          }
+
+          function glyphSelectionChanged()
+          {
+            let e = document.getElementById("glyphSelection");
+            document.getElementById("glyphnote").value = textures[e.value].note;
             refreshSelects();
           }
-        }
 
-        function saveRoomData()
-        {
-          let roomTileData = "";
-          for(let i = 0; i < rooms[currentlySelectedRoomIndex].height; ++i)
+          function glyphNoteChanged()
           {
-            for(let j = 0; j < rooms[currentlySelectedRoomIndex].width; ++j)
-            {
-              let sprite = spriteArray[i][j];
-              roomTileData += sprite.texture.glyph;
-            }
-            //roomTileData += '*';
+            let e = document.getElementById("glyphSelection");
+            textures[e.value].note = document.getElementById("glyphnote").value;
+            refreshSelects();
           }
 
-          let roomData = {
-            name: document.getElementById("roomname").value,
-            type: document.getElementById("roomTypeSelection").value,
-            data: roomTileData,
-            width: rooms[currentlySelectedRoomIndex].width,
-            height: rooms[currentlySelectedRoomIndex].height
-          };
-
-          return roomData;
-        }
-
-        function loadRoomData(roomDataObj)
-        {
-          resizeRoom(roomDataObj.width, roomDataObj.height);
-          if(roomDataObj.data == "" || roomDataObj.data == undefined)
+          function roomNameChanged()
           {
-            for(let i = 0; i < roomDataObj.height; ++i)
+            let roomnameBox = document.getElementById("roomname");
+            rooms[currentlySelectedRoomIndex].name = roomnameBox.value;
+            refreshSelects();
+          }
+
+          function roomSelectionChanged()
+          {
+            let select = document.getElementById("roomSelection");
+            let newlySelectedRoomIndex = select.value;
+            if(currentlySelectedRoomIndex != newlySelectedRoomIndex)
             {
-              for(let j = 0; j < roomDataObj.width; ++j)
-              {
-                spriteArray[i][j].texture = textures["zero"];
-              }
+              rooms[currentlySelectedRoomIndex] = saveRoomData();
+            }
+            loadRoomData(rooms[newlySelectedRoomIndex]);
+            currentlySelectedRoomIndex = newlySelectedRoomIndex;
+            document.getElementById("roomname").value = rooms[newlySelectedRoomIndex].name;
+            refreshSelects();
+          }
+          
+          let bMouseDown = false;
+
+          document.body.onmousedown = function() {
+            bMouseDown = true;
+          }
+          document.body.onmouseup = function() {
+            bMouseDown = false;
+          }
+
+          function move() {
+            if(bMouseDown)
+            {
+              changeSprite(this);
             }
           }
-          else
+
+          function onClick() {
+            changeSprite(this);
+          }
+
+          function changeSprite(obj) {
+            let i = Math.floor(obj.y/48);
+            let j = Math.floor(obj.x/48);
+            let e = document.getElementById("glyphSelection");
+            let glyph = e.value;
+            obj.texture = textures[glyph];
+          }
+
+          function addRoom()
           {
-            for(let i = 0; i < roomDataObj.height; ++i)
+            rooms.push({
+              name: "new-room",
+              type: "corridor",
+              width: Math.min(Math.max(document.getElementById("rwidth").value, 1), 50),
+              height: Math.min(Math.max(document.getElementById("rheight").value, 1), 50),
+              data: ""
+            });
+            refreshSelects();
+          }
+
+          function removeRoom()
+          {
+            if(rooms.length > 1)
             {
-              for(let j = 0; j < roomDataObj.width; ++j)
-              {
-                let glyph = roomDataObj.data.charAt(i * roomDataObj.width + j); // + i/*for delimiter*/
-                if(textures[glyph.toLowerCase()] == undefined)
-                {
-                  let _num = "zero one two three four five six seven eight nine".split(" ");
-                  glyph = _num[parseInt(glyph)];
-                }
-                spriteArray[i][j].texture = textures[glyph.toLowerCase()];
+              rooms.splice(currentlySelectedRoomIndex, 1);
+              if(currentlySelectedRoomIndex > 0) {
+                currentlySelectedRoomIndex--;
               }
+              let select = document.getElementById("roomSelection");
+              select.value = currentlySelectedRoomIndex;
+              roomSelectionChanged();
+              refreshSelects();
             }
           }
-        }
 
-        function loadMap()
-        {
-          let input = document.createElement('input');
-          input.type = 'file';
-          input.onchange = _ => {
-            let files = Array.from(input.files);
-            var reader = new FileReader();
-            reader.onload = function(e) {
-              var contents = e.target.result;
-              let loadData = JSON.parse(contents);
-              if(loadData != undefined)
+          function saveRoomData()
+          {
+            let roomTileData = "";
+            for(let i = 0; i < rooms[currentlySelectedRoomIndex].height; ++i)
+            {
+              for(let j = 0; j < rooms[currentlySelectedRoomIndex].width; ++j)
               {
-                rooms.length = loadData.count;
-                rooms = loadData.rooms;
-                currentlySelectedRoomIndex = 0;
-                let _rs = document.getElementById("roomSelection");
-                _rs.value = 0;
-                refreshSelects();
-                loadRoomData(rooms[0]);
-                document.getElementById("filename").value = files[0].name.replace(/\.[^/.]+$/, "");
+                let sprite = spriteArray[i][j];
+                roomTileData += sprite.texture.glyph;
               }
+              //roomTileData += '*';
+            }
+
+            let roomData = {
+              name: document.getElementById("roomname").value,
+              type: document.getElementById("roomTypeSelection").value,
+              data: roomTileData,
+              width: rooms[currentlySelectedRoomIndex].width,
+              height: rooms[currentlySelectedRoomIndex].height
             };
-            reader.readAsText(files[0]);
-          };
-          input.click();
-        }
 
-        function saveMap()
-        {
-          rooms[currentlySelectedRoomIndex] = saveRoomData();
-          let saveData = {
-            count: rooms.length,
-            rooms: rooms
-          };
-          let e = document.getElementById("filename");
-          download(JSON.stringify(saveData), e.value+'.json', 'text/plain');
-        }
+            return roomData;
+          }
 
-        function download(content, fileName, contentType) {
-          var a = document.createElement("a");
-          var file = new Blob([content], {type: contentType});
-          a.href = URL.createObjectURL(file);
-          a.download = fileName;
-          a.click();
-        }
+          function loadRoomData(roomDataObj)
+          {
+            resizeRoom(roomDataObj.width, roomDataObj.height);
+            if(roomDataObj.data == "" || roomDataObj.data == undefined)
+            {
+              for(let i = 0; i < roomDataObj.height; ++i)
+              {
+                for(let j = 0; j < roomDataObj.width; ++j)
+                {
+                  spriteArray[i][j].texture = textures['0'];
+                }
+              }
+            }
+            else
+            {
+              for(let i = 0; i < roomDataObj.height; ++i)
+              {
+                for(let j = 0; j < roomDataObj.width; ++j)
+                {
+                  let glyph = roomDataObj.data.charAt(i * roomDataObj.width + j); // + i/*for delimiter*/
+                  if(textures[glyph.toLowerCase()] == undefined)
+                  {
+                    let _num = "zero one two three four five six seven eight nine".split(" ");
+                    glyph = _num[parseInt(glyph)];
+                  }
+                  spriteArray[i][j].texture = textures[glyph.toLowerCase()];
+                }
+              }
+            }
+          }
 
-        function applyRoomSizeChange()
-        {
-          let w = Math.min(Math.max(document.getElementById("rwidth").value, 1), 50);
-          let h = Math.min(Math.max(document.getElementById("rheight").value, 1), 50);
-          resizeRoom(w,h);
-        }
+          function loadMap()
+          {
+            let input = document.createElement('input');
+            input.type = 'file';
+            input.onchange = _ => {
+              let files = Array.from(input.files);
+              var reader = new FileReader();
+              reader.onload = function(e) {
+                var contents = e.target.result;
+                let loadData = JSON.parse(contents);
+                if(loadData != undefined)
+                {
+                  loadGlyphNotes(loadData.glyphnotes);
+                  rooms.length = loadData.count;
+                  rooms = loadData.rooms;
+                  currentlySelectedRoomIndex = 0;
+                  let _rs = document.getElementById("roomSelection");
+                  _rs.value = 0;
+                  refreshSelects();
+                  loadRoomData(rooms[0]);
+                  document.getElementById("filename").value = files[0].name.replace(/\.[^/.]+$/, "");
+                }
+              };
+              reader.readAsText(files[0]);
+            };
+            input.click();
+          }
+
+          function saveGlyphNotes()
+          {
+            let fuck = ['0','1','2','3','4','5','6','7','8','9',
+            'A','B','C','D','E','F','G','H','I','J','K','L','M','N',
+            'O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+            let glyphnotes = {};
+            for (let f = 0; f < fuck.length; ++f)
+            {
+              glyphnotes[fuck[f].toLowerCase()] = textures[fuck[f].toLowerCase()].note
+            }
+            return glyphnotes;
+          }
+
+          function loadGlyphNotes(glyphnotes)
+          {
+            let fuck = ['0','1','2','3','4','5','6','7','8','9',
+            'A','B','C','D','E','F','G','H','I','J','K','L','M','N',
+            'O','P','Q','R','S','T','U','V','W','X','Y','Z'];
+            for (let f = 0; f < fuck.length; ++f)
+            {
+              textures[fuck[f].toLowerCase()].note = glyphnotes[fuck[f].toLowerCase()];
+            }
+          }
+
+          function saveMap()
+          {
+            rooms[currentlySelectedRoomIndex] = saveRoomData();
+            let bruh = saveGlyphNotes();
+            console.log(bruh);
+            let saveData = {
+              glyphnotes: bruh,
+              count: rooms.length,
+              rooms: rooms
+            };
+            let e = document.getElementById("filename");
+            download(JSON.stringify(saveData), e.value+'.json', 'text/plain');
+          }
+
+          function download(content, fileName, contentType) {
+            var a = document.createElement("a");
+            var file = new Blob([content], {type: contentType});
+            a.href = URL.createObjectURL(file);
+            a.download = fileName;
+            a.click();
+          }
+
+          function applyRoomSizeChange()
+          {
+            let w = Math.min(Math.max(document.getElementById("rwidth").value, 1), 50);
+            let h = Math.min(Math.max(document.getElementById("rheight").value, 1), 50);
+            resizeRoom(w,h);
+          }
       </script>
     </div>
     <div>

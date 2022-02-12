@@ -1,4 +1,7 @@
 {
   "name": "bambuu.js",
-  "main": "index.html"
+  "main": "index.html",
+  "dependencies": {
+    "pixi-filters": "^4.1.6"
+  }
 }

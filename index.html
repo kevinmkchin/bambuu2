@@ -1,6 +1,12 @@
+<!-- 
+README:
+  You can add additional custom room types and specify textures for specific glyphs.
+  See "FOR USER" comments in this file. 
+-->
+
 <!doctype html>
 <html>
-  <title>cpsc427 roguelike room editor</title>
+  <title>basic tilemap editor</title>
   <head>
     <script src="pixi.min.js"></script>
     <script src="https://pixijs.download/release/pixi.min.js"></script>
@@ -34,7 +40,7 @@
   </head>
   <body>
     <div id="UI">
-      <h2>cpsc427 roguelike room editor</h2>
+      <h2>bambuu2 - basic tilemap editor</h2>
 
       <div id="FileSelect">
         <input type="text" id="filename" value="filename" size=10>
@@ -53,6 +59,16 @@
         <input type="text" id="roomname" onchange="roomNameChanged()" value="defaultroomname" size=20>
         <label>Room type</label>
         <select name="roomTypes" id="roomTypeSelection">
+
+          <!-- 
+
+          =============================================================================
+          FOR USER:
+            ADD ADDITIONAL ROOM TYPES HERE 
+          =============================================================================
+
+          -->
+
           <option value="corridor">corridor</option>
           <option value="landing">landing</option>
           <option value="falling">falling</option>
@@ -95,7 +111,7 @@
         window.onload = function ()
         {
 
-          /** TODO
+          /** TODO(Kevin):
               - undo, redo
               - show grid
           */
@@ -143,7 +159,14 @@
             };
           }
 
-          // TODO ADD CUSTOM SPRITES FOR GLYPHS HERE
+          /*
+
+          =============================================================================
+          FOR USER:
+            ADD CUSTOM SPRITES FOR GLYPHS HERE
+          =============================================================================
+
+          */
           // textures.one = PIXI.Texture.from('res/1.png');
           // textures.one.glyph = "1";
           // textures.a = PIXI.Texture.from('res/A.png');
@@ -355,8 +378,8 @@
             rooms.push({
               name: "new-room",
               type: "corridor",
-              width: Math.min(Math.max(document.getElementById("rwidth").value, 1), 50),
-              height: Math.min(Math.max(document.getElementById("rheight").value, 1), 50),
+              width: Math.min(Math.max(document.getElementById("rwidth").value, 1), 128),
+              height: Math.min(Math.max(document.getElementById("rheight").value, 1), 128),
               data: ""
             });
             refreshSelects();
@@ -508,8 +531,8 @@
 
           function applyRoomSizeChange()
           {
-            let w = Math.min(Math.max(document.getElementById("rwidth").value, 1), 50);
-            let h = Math.min(Math.max(document.getElementById("rheight").value, 1), 50);
+            let w = Math.min(Math.max(document.getElementById("rwidth").value, 1), 128);
+            let h = Math.min(Math.max(document.getElementById("rheight").value, 1), 128);
             resizeRoom(w,h);
           }
 
